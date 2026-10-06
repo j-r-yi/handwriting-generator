@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------------
+# Personal data: handwriting samples, deleted-sample backups and anything else
+# the app stores. Never commit it. Only the empty profiles folder is tracked.
+# ---------------------------------------------------------------------------
+data/*
+!data/profiles/
+data/profiles/*
+!data/profiles/.gitkeep
+
+# Pages, sample sheets or scans saved into the project folder
+/*.png
+/*.jpg
+/*.jpeg
+/*.pdf
+/*.zip
+/*.tif
+/*.tiff
+/*.heic
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Tool caches and reports
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Secrets and local configuration
+# ---------------------------------------------------------------------------
+.env
+.env.*
+.streamlit/secrets.toml
+.claude/
+
+# ---------------------------------------------------------------------------
+# OS / editor
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+*.log

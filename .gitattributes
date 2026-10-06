@@ -1,0 +1,8 @@
+# Normalise line endings so the project behaves the same on macOS, Linux and Windows.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.svg text

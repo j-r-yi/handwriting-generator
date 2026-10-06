@@ -1,0 +1,9 @@
+# Direct dependencies only. Ranges allow compatible upgrades.
+numpy>=1.26,<3
+Pillow>=10.2,<12
+opencv-python-headless>=4.9,<5
+# 1.64+ is needed for the UI (persistent widget state, horizontal layouts).
+streamlit>=1.64,<2
+# Renders uploaded PDF scans locally (PDFium; BSD/Apache licensed, no network use).
+pypdfium2>=4.30,<6
+pytest>=8.0,<9

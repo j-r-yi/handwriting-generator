@@ -1,0 +1,38 @@
+# Local-only configuration.
+[server]
+# Only listen on this computer; the app is not exposed to your network.
+address = "localhost"
+headless = false
+maxUploadSize = 60
+
+[browser]
+# Disable Streamlit's own anonymous usage statistics.
+gatherUsageStats = false
+serverAddress = "localhost"
+
+[client]
+toolbarMode = "minimal"
+
+# Look and feel. Only fonts bundled with Streamlit are used, so the app never
+# fetches anything from the internet.
+[theme]
+font = "sans-serif"
+headingFontWeights = [700, 650, 600, 600, 600, 600]
+baseRadius = "0.65rem"
+buttonRadius = "0.6rem"
+showWidgetBorder = true
+linkUnderline = false
+
+[theme.light]
+primaryColor = "#3451D1"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F4F7"
+textColor = "#1B1F27"
+borderColor = "#E2E5EB"
+
+[theme.dark]
+primaryColor = "#7C93FF"
+backgroundColor = "#111318"
+secondaryBackgroundColor = "#1B1E25"
+textColor = "#E8EAF0"
+borderColor = "#2C313B"
