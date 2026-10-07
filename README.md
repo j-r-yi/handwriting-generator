@@ -243,8 +243,10 @@ erased. A cleared profile's images and its old `profile.json` are kept in
      default), what to
      do with characters that have no sample, and an optional **random seed**
 5. Click **Generate**. The preview shows one page at a time (pick the page
-   number under the toolbar). Download one combined **PDF**, the current page
-   as a **PNG**, or **all PNGs** as a zip.
+   number under the toolbar). Type a **file name** in the box next to the
+   download buttons (press Enter), then download one combined **PDF**, the
+   current page as a **PNG**, or **all PNGs** as a zip, all with that name
+   (default `handwriting`; characters not allowed in file names are removed).
 
 Each result has a *look number* (its random seed). **Keep this look** fills it
 in, so the next Generate gives exactly the same pages, for example after you
@@ -489,7 +491,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 python -m pytest
 ```
 
-The suite (193 tests, about 21 seconds) needs no personal handwriting. All
+The suite (203 tests, about 21 seconds) needs no personal handwriting. All
 test images are generated on the fly. It covers:
 
 - Markdown parsing (block types, nesting, inline styles, escapes, code, links,

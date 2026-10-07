@@ -7,7 +7,7 @@ import time
 import streamlit as st
 
 from handwriting.errors import HandwritingError
-from handwriting.export import pdf_bytes, png_bytes, zip_of_pngs
+from handwriting.export import pdf_bytes, png_bytes, safe_file_stem, zip_of_png_bytes
 from handwriting.models import GlyphSet
 from handwriting.renderer import find_missing_characters, render_text
 from handwriting.sample_store import ProfileStore
@@ -33,6 +33,7 @@ from .common import current_profile_id, dpi_control, friendly_errors, preview_im
 from .shell import empty_state, page_header, welcome
 
 RESULT_KEY = "generation_result"
+_DEFAULT_FILE_NAME = "handwriting"
 _VIEW_KEY = "result_page"
 _SEED_KEY = "gen_seed"
 _CUSTOM_INK = "Custom"
@@ -341,7 +342,6 @@ def _generate(text: str, glyphs: GlyphSet, settings: RenderSettings) -> None:
             "previews": [preview_image(page) for page in result.pages],
             "pngs": [png_bytes(page, dpi) for page in result.pages],
             "pdf": pdf_bytes(result.pages, dpi),
-            "zip": zip_of_pngs(result.pages, dpi, stem="handwriting_page") if len(result.pages) > 1 else None,
             "seed": result.seed,
             "missing": result.missing,
             "size": result.pages[0].size,
@@ -368,29 +368,36 @@ def _show_result() -> None:
         st.session_state[_VIEW_KEY] = 1
     current = st.session_state[_VIEW_KEY]
 
-    with st.container(horizontal=True, vertical_alignment="center", gap="small"):
+    with st.container(horizontal=True, vertical_alignment="center"):
         st.markdown(f"**{pages} page{'s' if pages != 1 else ''}** · {result['dpi']} DPI · "
                     f"{result['seconds']:.1f} s", width="content")
-        st.space("stretch")
-        st.download_button("PDF", result["pdf"], file_name="handwriting.pdf", mime="application/pdf",
-                           on_click="ignore", type="primary", icon=":material/download:",
-                           help="All pages in one PDF")
-        st.download_button("PNG", result["pngs"][current - 1], file_name=f"handwriting_page_{current:02d}.png",
-                           mime="image/png", on_click="ignore", icon=":material/image:",
-                           help=f"Page {current} as an image")
-        if result["zip"]:
-            st.download_button("All PNGs", result["zip"], file_name="handwriting_pages.zip",
-                               mime="application/zip", on_click="ignore", icon=":material/folder_zip:",
-                               help="Every page as a PNG, in a zip file")
-    with st.container(horizontal=True, vertical_alignment="center"):
-        if pages > 1:
-            st.pills("Page", list(range(1, pages + 1)), key=_VIEW_KEY, required=True, persist_state=_PERSIST,
-                     label_visibility="collapsed")
         st.space("stretch")
         st.caption(f"Look #{result['seed']}", width="content")
         st.button("Keep this look", icon=":material/push_pin:", type="tertiary", on_click=_keep_seed,
                   args=(result["seed"],),
                   help="Fill in the random seed so Generate gives exactly these pages again.")
+    with st.container(horizontal=True, vertical_alignment="center", gap="small"):
+        typed_name = st.text_input("File name", key="gen_file_name", persist_state=_PERSIST,
+                                   placeholder="Name your download (optional)", label_visibility="collapsed",
+                                   width="stretch", icon=":material/edit:",
+                                   help=f"Used for the PDF, PNG and zip downloads. Press Enter before "
+                                        f"downloading. Left empty, files are named “{_DEFAULT_FILE_NAME}”.")
+        stem = safe_file_stem(typed_name, fallback=_DEFAULT_FILE_NAME)
+        st.download_button("PDF", result["pdf"], file_name=f"{stem}.pdf", mime="application/pdf",
+                           on_click="ignore", type="primary", icon=":material/download:",
+                           help=f"All pages in one PDF: {stem}.pdf")
+        png_name = f"{stem}.png" if pages == 1 else f"{stem}_page_{current:02d}.png"
+        st.download_button("PNG", result["pngs"][current - 1], file_name=png_name,
+                           mime="image/png", on_click="ignore", icon=":material/image:",
+                           help=f"Page {current} as an image: {png_name}")
+        if pages > 1:
+            pngs = result["pngs"]
+            st.download_button("All PNGs", lambda: zip_of_png_bytes(pngs, f"{stem}_page"),
+                               file_name=f"{stem}_pages.zip", mime="application/zip", on_click="ignore",
+                               icon=":material/folder_zip:", help=f"Every page as a PNG, in {stem}_pages.zip")
+    if pages > 1:
+        st.pills("Page", list(range(1, pages + 1)), key=_VIEW_KEY, required=True, persist_state=_PERSIST,
+                 label_visibility="collapsed")
     if result["missing"]:
         st.warning("Written with placeholders for: " + " ".join(result["missing"]), icon=":material/warning:")
     with st.container(key="page_preview"):

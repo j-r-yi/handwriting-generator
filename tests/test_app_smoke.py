@@ -368,6 +368,17 @@ def test_multi_page_result_can_be_paged_through(app: tuple[AppTest, Path]) -> No
     png = next(b for b in at.get("download_button") if b.label == "PNG")
     assert "Page 2" in png.proto.help
 
+    def downloads() -> dict[str, str]:
+        return {b.label: b.proto.help for b in at.get("download_button")}
+
+    assert "handwriting.pdf" in downloads()["PDF"]  # the default name
+    at.text_input(key="gen_file_name").input("Republic IV: Justice.pdf")
+    at.run()
+    _assert_no_errors(at)
+    assert "Republic IV Justice.pdf" in downloads()["PDF"]
+    assert "Republic IV Justice_page_02.png" in downloads()["PNG"]
+    assert "Republic IV Justice_pages.zip" in downloads()["All PNGs"]
+
 
 def test_new_symbol_can_be_added_with_pictures(app: tuple[AppTest, Path]) -> None:
     at, data_dir = app
