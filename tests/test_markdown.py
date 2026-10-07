@@ -93,16 +93,16 @@ def test_fenced_code_is_kept_literally() -> None:
     ]
 
 
-def test_line_breaks_are_kept_and_blank_runs_collapse() -> None:
+def test_every_blank_line_is_kept_except_at_the_end() -> None:
     blocks = parse_markdown("\n\none\ntwo\n\n\nthree\n\n")
-    assert [b.text for b in blocks] == ["one", "two", "", "three"]
+    assert [b.text for b in blocks] == ["", "", "one", "two", "", "", "three"]
 
 
 def test_empty_quote_line_closing_a_quote_is_a_plain_gap() -> None:
     blocks = parse_markdown("> one\n>\n> two\n> \n\n---")
     assert [(b.kind, b.text, b.quote_depth) for b in blocks] == [
         (BlockKind.PARAGRAPH, "one", 1), (BlockKind.PARAGRAPH, "", 1), (BlockKind.PARAGRAPH, "two", 1),
-        (BlockKind.PARAGRAPH, "", 0), (BlockKind.RULE, "", 0),
+        (BlockKind.PARAGRAPH, "", 0), (BlockKind.PARAGRAPH, "", 0), (BlockKind.RULE, "", 0),
     ]
 
 
@@ -196,19 +196,28 @@ def test_markdown_rendering_is_deterministic() -> None:
     assert _render(text).pages[0].tobytes() == _render(text).pages[0].tobytes()
 
 
-def test_big_heading_gets_a_free_line_above_on_ruled_paper() -> None:
-    settings = RenderSettings(page=PageSettings(dpi=100), variation=STILL, seed=1, markdown=True)
-    result = render_text("abc\n# Head\nabc", make_glyph_set(CHARS), settings)
-    lines = sorted({p.line for p in result.placements})
-    assert lines == [0, 2, 3]
+def _ruled_lines(text: str, **style) -> list[int]:
+    settings = RenderSettings(page=PageSettings(dpi=100), variation=STILL, seed=1, markdown=True,
+                              markdown_style=MarkdownStyle(**style))
+    return sorted({p.line for p in render_text(text, make_glyph_set(CHARS), settings).placements})
+
+
+def test_spacing_around_headings_is_exactly_as_typed() -> None:
+    assert _ruled_lines("abc\n# Head\nabc") == [0, 1, 2]  # no extra space added
+    assert _ruled_lines("## Selfishness\n\n\n\n## Bitterness") == [0, 4]  # three blank lines skip three
+    # Title, gap, Section, gap, abc, 3 gaps, rule, gap, Sub, gap, abc
+    text = "# Title\n\n## Section\n\nabc\n\n\n\n---\n\n### Sub\n\nabc"
+    assert _ruled_lines(text) == [0, 2, 4, 10, 12]
+
+
+def test_big_heading_gets_a_free_line_above_with_heading_gaps() -> None:
+    assert _ruled_lines("abc\n# Head\nabc", heading_gaps=True) == [0, 2, 3]
 
 
 def test_heading_space_does_not_stack_with_blank_lines() -> None:
-    settings = RenderSettings(page=PageSettings(dpi=100), variation=STILL, seed=1, markdown=True)
     text = "# Title\n\n## Section\n\nabc\n\n\n\n---\n\n### Sub\n\nabc"
-    result = render_text(text, make_glyph_set(CHARS), settings)
-    # Title, gap, Section, gap, abc, gap, rule, gap, Sub, gap, abc
-    assert sorted({p.line for p in result.placements}) == [0, 2, 4, 8, 10]
+    # Title, gap, Section, gap, abc, 3 gaps, rule, gap, Sub, gap, abc
+    assert _ruled_lines(text, heading_gaps=True) == [0, 2, 4, 10, 12]
 
 
 def test_style_dataclass_defaults_are_plain() -> None:

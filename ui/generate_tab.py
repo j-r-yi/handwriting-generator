@@ -25,6 +25,7 @@ from handwriting.settings import (
     RenderSettings,
     VariantMode,
     VariationSettings,
+    default_margins,
 )
 from handwriting.utils import parse_hex_color, to_hex_color
 
@@ -108,7 +109,7 @@ _MARKDOWN_HELP = """
 | `` `code` `` · `[text](link)` | written as plain text (links: text only) |
 | `\\*` | a literal `*` (backslash escapes any symbol) |
 
-Every line break is kept, as in handwritten notes. Several blank lines in a row count as one gap.
+Every line break is kept, as in handwritten notes, and every blank line skips one line.
 """
 
 
@@ -241,10 +242,15 @@ def _style_controls(markdown: bool) -> tuple[RenderSettings | None, str | None]:
             with fine_tab:
                 _fine_tune_controls()
             with other_tab:
-                underline = False
+                underline = heading_gaps = False
                 if markdown:
-                    underline = st.toggle("Underline big headings", value=False, key="gen_underline", persist_state=_PERSIST,
-                              help="Markdown # and ## headings get a hand-drawn line underneath.")
+                    underline = st.toggle("Underline big headings", value=False, key="gen_underline",
+                                          persist_state=_PERSIST,
+                                          help="Markdown # and ## headings get a hand-drawn line underneath.")
+                    heading_gaps = st.toggle("Free line above big headings", value=False, key="gen_heading_gaps",
+                                             persist_state=_PERSIST,
+                                             help="Off: spacing is exactly as typed; each blank line skips one "
+                                                  "line. On: # to ### headings also get a free line above them.")
                 policy = st.radio("Characters without a sample", list(MissingGlyphPolicy), key="gen_policy",
                                   persist_state=_PERSIST, format_func=lambda p: p.value)
                 seed_text = st.text_input("Random seed", key=_SEED_KEY, persist_state=_PERSIST,
@@ -261,7 +267,7 @@ def _style_controls(markdown: bool) -> tuple[RenderSettings | None, str | None]:
 
     settings = RenderSettings(
         page=page,
-        markdown_style=MarkdownStyle(underline_levels=2 if underline else 0),
+        markdown_style=MarkdownStyle(underline_levels=2 if underline else 0, heading_gaps=heading_gaps),
         variation=_variation_from_state(),
         ink_color=ink_color,
         x_height_mm=x_height,
@@ -289,12 +295,13 @@ def _page_options(paper_style: PaperStyle, dpi: int) -> PageSettings:
                                  persist_state=_PERSIST, format="%.1f mm",
                                  help="On graph paper, lines snap to the 5 mm grid.")
 
-    defaults = Margins()
+    # Each paper keeps its own margins: narrow ruled starts near the edge, the others leave room for a red line.
+    defaults = default_margins(paper_style)
     st.caption("Margins (mm)")
     col_a, col_b = st.columns(2)
     margins = Margins(**{
-        side: column.number_input(side.title(), 5.0, 80.0, getattr(defaults, side), 1.0,
-                                  format="%.0f", key=f"gen_margin_{side}", persist_state=_PERSIST)
+        side: column.number_input(side.title(), 5.0, 80.0, getattr(defaults, side), 1.0, format="%.0f",
+                                  key=f"gen_margin_{side}_{paper_style.name.lower()}", persist_state=_PERSIST)
         for side, column in (("left", col_a), ("right", col_b), ("top", col_a), ("bottom", col_b))
     })
     show_margin_rule = True

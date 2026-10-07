@@ -14,11 +14,11 @@ Supported (a practical subset of CommonMark/GitHub Markdown):
   (only the link text is written), ``![images](url)`` (alt text),
   ``<https://autolinks>`` and backslash escapes.
 
-Unlike standard Markdown, every line break is kept (as in handwritten notes):
-a single newline starts a new line. As in standard Markdown, a run of blank
-lines is one gap, and blank lines at the start or end, or closing a quote,
-take no space. Fenced code is kept exactly. Unrecognised syntax is simply
-written as text, so nothing is lost.
+Unlike standard Markdown, line breaks are kept as typed (as in handwritten
+notes): a single newline starts a new line and every blank line leaves one
+empty line, so three blank lines skip three lines. Only blank lines at the
+very end are dropped. Fenced code is kept exactly. Unrecognised syntax is
+simply written as text, so nothing is lost.
 """
 
 from __future__ import annotations
@@ -71,15 +71,13 @@ def _is_blank(block: Block) -> bool:
 
 
 def _tidy_blank_lines(blocks: list[Block]) -> list[Block]:
-    """Collapse runs of blank lines into one gap and drop blanks that add no meaning."""
+    """Keep every blank line (each one skips a line), but drop those at the very end."""
     tidy: list[Block] = []
     for index, block in enumerate(blocks):
         if _is_blank(block) and block.quote_depth:
             following = blocks[index + 1] if index + 1 < len(blocks) else None
             if following is None or following.quote_depth < block.quote_depth or _is_blank(following):
-                block = Block(BlockKind.PARAGRAPH)  # an empty "> " line that closes a quote
-        if _is_blank(block) and (not tidy or _is_blank(tidy[-1])):
-            continue  # leading blank line, or one more in a row
+                block = Block(BlockKind.PARAGRAPH)  # an empty "> " line that closes a quote: no bar
         tidy.append(block)
     while tidy and _is_blank(tidy[-1]):
         tidy.pop()

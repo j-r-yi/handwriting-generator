@@ -492,7 +492,9 @@ def _layout_blocks(blocks: Sequence[Block], planner: _Planner, style: MarkdownSt
                 line_x = max(marker_x, text_x + rng.uniform(-1.0, 0.5) * indent)
             lines.append(_PlacedLine(block, line, plans, line_x, marker_x, marker_plans, first=number == 0))
             # A heading's extra space counts blank lines already above it.
-            space = style.heading_space_before[level - 1] - blank_run if heading and number == 0 else 0
+            space = 0
+            if heading and number == 0 and style.heading_gaps:
+                space = style.heading_space_before[level - 1] - blank_run
             requests.append(SlotRequest(
                 space_before=max(0, space),
                 keep_with_next=heading and number == len(wrapped) - 1,

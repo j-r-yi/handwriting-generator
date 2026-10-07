@@ -179,4 +179,9 @@ def test_narrow_ruled_paper_has_quarter_inch_lines_and_no_margin_line() -> None:
     assert narrow.baselines[1] - narrow.baselines[0] == pytest.approx(mm_to_px(6.35, 300))
     assert len(narrow.baselines) > len(college.baselines)
     assert narrow.margin_rule_x is None and college.margin_rule_x is not None
-    assert narrow.text_left == pytest.approx(mm_to_px(Margins().left, 300))  # text starts at the margin
+    # No red line to leave room for: writing starts near the edge and uses most of each line.
+    assert narrow.text_left == pytest.approx(mm_to_px(8.0, 300))
+    assert narrow.text_width > college.text_width + mm_to_px(25, 300)
+    assert college.text_left > mm_to_px(Margins().left, 300)  # just right of the red line
+    custom = PageSettings(paper_style=PaperStyle.NARROW_RULED, margins=Margins(left=30))
+    assert compute_page_geometry(RenderSettings(page=custom)).text_left == pytest.approx(mm_to_px(30, 300))

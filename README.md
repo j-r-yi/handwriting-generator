@@ -215,7 +215,9 @@ erased. A cleared profile's images and its old `profile.json` are kept in
    - **Resolution**: output DPI (same setting as on the Settings page)
 4. **More options** has everything else, in four tabs:
    - **Page**: US Letter or A4; **write on** every line / every other line
-     (ruled paper) or **line spacing** in mm (blank / graph paper); margins;
+     (ruled paper) or **line spacing** in mm (blank / graph paper); margins
+     (remembered per paper: narrow ruled starts 8 mm from the edges and uses
+     most of each line, the others leave room for the red margin line);
      the red margin line
    - **Spacing**: letter spacing (tight by default, 0.04 x-heights) and
      word spacing
@@ -269,7 +271,7 @@ The **cell membrane** controls what enters and leaves the cell.
 
 | Markdown | How it is written |
 | --- | --- |
-| `#` … `######` headings | larger (×1.7, ×1.4, ×1.2, …); no underline (an option under *More options → Other* adds a hand-drawn one to levels 1–2); big headings leave a ruled line free above them and are never left alone at the bottom of a page |
+| `#` … `######` headings | larger (×1.7, ×1.4, ×1.2, …); no underline (an option under *More options → Other* adds a hand-drawn one to levels 1–2); no space is added around them: only the blank lines you type (turn on *Free line above big headings* under *More options → Other* for an extra line above `#`–`###`); never left alone at the bottom of a page |
 | `-`, `*`, `+` bullets | written as typed: a `-` bullet is your own handwritten dash, `*` and `+` are a dot (your own `•` if you added one as a symbol). Without a sample, the dash or dot is drawn. Text is indented; indent 2 spaces per nesting level |
 | `1.` / `1)` numbered | the number is written in your handwriting, text aligned after it |
 | `- [ ]` / `- [x]` tasks | a hand-drawn box, ticked when done |
@@ -287,12 +289,13 @@ Differences from standard Markdown, chosen for handwritten notes:
 
 - every line break is kept (standard Markdown would merge lines into
   paragraphs);
-- spacing stays compact, as in standard Markdown: several blank lines in a
-  row leave one empty line, blank lines at the start and end are ignored,
-  and an empty `>` line closing a quote is just a gap. A heading's extra
-  space above it is shared with any blank line already there. Fenced code
-  keeps its blank lines;
-- tables, footnotes and HTML are not interpreted. They are written as typed
+- spacing is exactly as typed: every blank line skips one line (three blank
+  lines skip three), including around headings. Only blank lines at the very
+  end are dropped. An empty `>` line closing a quote is a plain gap. With
+  *Free line above big headings* on, a big heading's extra space is shared
+  with any blank line already above it;
+- `<u>underline</u>` is the only HTML that is interpreted;
+- tables, footnotes and other HTML are not interpreted. They are written as typed
   text, so nothing is lost.
 
 With the toggle off (the default), the text is written exactly as typed,
@@ -486,7 +489,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 python -m pytest
 ```
 
-The suite (192 tests, about 21 seconds) needs no personal handwriting. All
+The suite (193 tests, about 21 seconds) needs no personal handwriting. All
 test images are generated on the fly. It covers:
 
 - Markdown parsing (block types, nesting, inline styles, escapes, code, links,

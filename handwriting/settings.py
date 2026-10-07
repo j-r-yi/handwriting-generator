@@ -226,13 +226,21 @@ class Margins:
     bottom: float = 18.0
 
 
+def default_margins(paper_style: PaperStyle) -> Margins:
+    """Narrow-ruled paper has no red margin line, so writing starts near the edge and uses most of each line."""
+    if paper_style is PaperStyle.NARROW_RULED:
+        return Margins(left=8.0, right=8.0)
+    return Margins()
+
+
 @dataclass(frozen=True)
 class PageSettings:
     """Physical page configuration."""
 
     page_format: PageFormat = PageFormat.LETTER
     paper_style: PaperStyle = PaperStyle.NARROW_RULED
-    margins: Margins = field(default_factory=Margins)
+    # None: the paper style's usual margins (see default_margins).
+    margins: Margins = None  # type: ignore[assignment]
     dpi: int = DEFAULT_DPI
     # Line pitch for blank / graph paper.
     line_spacing_mm: float = 8.5
@@ -241,13 +249,21 @@ class PageSettings:
     show_margin_rule: bool = True
     paper_colors: PaperColors = field(default_factory=PaperColors)
 
+    def __post_init__(self) -> None:
+        if self.margins is None:
+            object.__setattr__(self, "margins", default_margins(self.paper_style))
+
 
 @dataclass(frozen=True)
 class MarkdownStyle:
     """How Markdown formatting is drawn. Sizes are in x-heights unless noted."""
 
-    # Size multiplier and extra ruled lines above, for heading levels 1-6.
+    # Size multiplier for heading levels 1-6.
     heading_scale: tuple[float, ...] = (1.7, 1.4, 1.2, 1.1, 1.0, 1.0)
+    # Off: spacing is exactly as typed (each blank line skips one line). On: big
+    # headings also get free ruled lines above them (heading_space_before,
+    # counting blank lines already there).
+    heading_gaps: bool = False
     heading_space_before: tuple[int, ...] = (1, 1, 1, 0, 0, 0)
     # Headings of this level or higher-priority (1..n) are underlined by hand (0: none).
     underline_levels: int = 0

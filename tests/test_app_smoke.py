@@ -14,7 +14,7 @@ from PIL import Image
 from streamlit.testing.v1 import AppTest
 
 from handwriting.sample_store import ProfileStore
-from handwriting.settings import DEFAULT_DPI, VARIATION_PRESETS, PageFormat, PaperStyle
+from handwriting.settings import DEFAULT_DPI, VARIATION_PRESETS, Margins, PageFormat, PaperStyle
 
 from tests.helpers import (
     PROJECT_ROOT,
@@ -340,6 +340,14 @@ def test_write_page_defaults_and_resolution_picker(app: tuple[AppTest, Path],
     assert captured[-1].page.dpi == 200
     assert captured[-1].page.paper_style is PaperStyle.NARROW_RULED
     assert captured[-1].x_height_mm == pytest.approx(2.2)
+    assert captured[-1].page.margins == Margins(left=8.0, right=8.0)  # narrow ruled uses most of each line
+    assert not captured[-1].markdown_style.heading_gaps
+
+    at.pills(key="gen_paper").set_value(PaperStyle.COLLEGE_RULED)
+    at.run()
+    _by_label(at.button, "Generate").click()
+    at.run()
+    assert captured[-1].page.margins == Margins()  # room for the red margin line
 
 
 def test_multi_page_result_can_be_paged_through(app: tuple[AppTest, Path]) -> None:
