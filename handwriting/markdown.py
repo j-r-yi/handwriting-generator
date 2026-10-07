@@ -9,7 +9,8 @@ Supported (a practical subset of CommonMark/GitHub Markdown):
 * horizontal rules ``---``, ``***``, ``___``
 * fenced code blocks (written literally)
 * inline ``**bold**``/``__bold__``, ``*italic*``/``_italic_``,
-  ``***both***``, ``~~strikethrough~~``, ```code```, ``[links](url)``
+  ``***both***``, ``~~strikethrough~~``, ``<u>underline</u>`` (or
+  ``<ins>``), ```code```, ``[links](url)``
   (only the link text is written), ``![images](url)`` (alt text),
   ``<https://autolinks>`` and backslash escapes.
 
@@ -41,6 +42,7 @@ _TASK = re.compile(r"^([ \t]*)[-*+][ \t]+\[([ xX])\](?:[ \t]+(.*))?$")
 _BULLET = re.compile(r"^([ \t]*)([-*+])(?:[ \t]+(.*))?$")
 _NUMBERED = re.compile(r"^([ \t]*)(\d{1,9})([.)])(?:[ \t]+(.*))?$")
 _AUTOLINK = re.compile(r"<([a-zA-Z][a-zA-Z0-9+.-]{1,31}:[^\s<>]*|[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+)>")
+_UNDERLINE_TAG = re.compile(r"<(/?)(u|ins)>", re.IGNORECASE)
 _ESCAPABLE = set(string.punctuation)
 StyleChange = Callable[[Style], Style]
 
@@ -169,6 +171,12 @@ class _InlineParser:
                     flush()
                     spans.append(Span(content, style))
                     continue
+                tag = self._underline(i, end)
+                if tag:
+                    (inner_start, inner_end), i = tag
+                    flush()
+                    spans.extend(self.parse(inner_start, inner_end, replace(style, underline=True)))
+                    continue
             if char == "[" or (char == "!" and i + 1 < end and text[i + 1] == "["):
                 found = self._link(i + (char == "!"), end)
                 if found:
@@ -214,6 +222,20 @@ class _InlineParser:
     def _autolink(self, i: int, end: int) -> tuple[str, int] | None:
         match = _AUTOLINK.match(self.text, i, end)
         return (match.group(1), match.end()) if match else None
+
+    def _underline(self, i: int, end: int) -> tuple[tuple[int, int], int] | None:
+        """``<u>text</u>`` (or ``<ins>``) starting at ``i``; an unclosed or empty tag stays literal."""
+        opening = _UNDERLINE_TAG.match(self.text, i, end)
+        if not opening or opening.group(1):
+            return None
+        name, depth = opening.group(2).lower(), 1
+        for tag in _UNDERLINE_TAG.finditer(self.text, opening.end(), end):
+            if tag.group(2).lower() != name:
+                continue
+            depth += -1 if tag.group(1) else 1
+            if depth == 0:
+                return ((opening.end(), tag.start()), tag.end()) if tag.start() > opening.end() else None
+        return None
 
     def _link(self, i: int, end: int) -> tuple[tuple[int, int], int] | None:
         """``[label](target)`` starting at ``i`` (the ``[``)."""

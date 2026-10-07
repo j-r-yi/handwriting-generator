@@ -23,6 +23,7 @@ class Style:
     italic: bool = False
     strike: bool = False
     code: bool = False
+    underline: bool = False
 
 
 PLAIN = Style()

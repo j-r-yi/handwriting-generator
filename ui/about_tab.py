@@ -13,11 +13,8 @@ from handwriting.renderer import max_pages
 from handwriting.sample_store import ProfileStore
 from handwriting.settings import DEFAULT_DPI
 
-from .common import DPI_KEY
+from .common import dpi_control
 from .shell import page_header
-
-_DPI_OPTIONS = [150, 200, 300, 600]
-_DPI_LABELS = {150: "150 · Draft", 200: "200", 300: "300 · Print", 600: "600 · Ultra sharp"}
 
 
 def render_about_tab(store: ProfileStore) -> None:
@@ -25,10 +22,7 @@ def render_about_tab(store: ProfileStore) -> None:
 
     with st.container(border=True):
         st.markdown("**Output resolution**")
-        st.session_state.setdefault(DPI_KEY, DEFAULT_DPI)
-        dpi = st.segmented_control("Output resolution (DPI)", _DPI_OPTIONS, key=DPI_KEY, required=True,
-                                   persist_state="session", format_func=_DPI_LABELS.get,
-                                   label_visibility="collapsed")
+        dpi = dpi_control("render_dpi", "Output resolution (DPI)", label_visibility="collapsed")
         st.caption("300 DPI prints crisply. 600 DPI stays sharp when zoomed in, especially with samples "
                    f"scanned at 600 DPI, but files are about 4× larger and at most {max_pages(600)} pages are "
                    "written at once. Lower values are faster.")

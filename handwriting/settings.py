@@ -166,7 +166,30 @@ VARIATION_PRESETS: dict[str, VariationSettings] = {
         ink_fade=0.03,
     ),
     "Natural": VariationSettings(),
+    # Halfway between Natural and Rushed notes (each value rounded to its slider step).
     "Messy": VariationSettings(
+        rotation_deg=1.8,
+        baseline_jitter=0.05,
+        scale_jitter=0.04,
+        letter_spacing_jitter=0.075,
+        letter_overlap=0.055,
+        shape_warp=0.035,
+        word_spacing_jitter=0.22,
+        word_baseline=0.065,
+        word_scale=0.045,
+        word_tilt_deg=0.9,
+        slant_jitter=0.07,
+        size_drift=0.045,
+        line_slope_deg=0.45,
+        line_wave=0.05,
+        line_offset=0.07,
+        margin_jitter=0.30,
+        indent_jitter=0.45,
+        ragged_right=2.75,
+        ink_fade=0.12,
+        fatigue=0.15,
+    ),
+    "Rushed notes": VariationSettings(
         variant_mode=VariantMode.RANDOM,
         rotation_deg=2.0,
         baseline_jitter=0.06,
@@ -189,29 +212,6 @@ VARIATION_PRESETS: dict[str, VariationSettings] = {
         ink_fade=0.18,
         fatigue=0.3,
     ),
-    "Rushed notes": VariationSettings(
-        variant_mode=VariantMode.RANDOM,
-        rotation_deg=3.0,
-        baseline_jitter=0.09,
-        scale_jitter=0.08,
-        letter_spacing_jitter=0.16,
-        letter_overlap=0.14,
-        shape_warp=0.08,
-        word_spacing_jitter=0.45,
-        word_baseline=0.16,
-        word_scale=0.12,
-        word_tilt_deg=2.0,
-        slant_jitter=0.18,
-        size_drift=0.12,
-        line_slope_deg=1.1,
-        line_wave=0.11,
-        line_offset=0.16,
-        margin_jitter=0.8,
-        indent_jitter=1.0,
-        ragged_right=7.0,
-        ink_fade=0.28,
-        fatigue=0.5,
-    ),
 }
 DEFAULT_PRESET = "Natural"
 
@@ -231,7 +231,7 @@ class PageSettings:
     """Physical page configuration."""
 
     page_format: PageFormat = PageFormat.LETTER
-    paper_style: PaperStyle = PaperStyle.COLLEGE_RULED
+    paper_style: PaperStyle = PaperStyle.NARROW_RULED
     margins: Margins = field(default_factory=Margins)
     dpi: int = DEFAULT_DPI
     # Line pitch for blank / graph paper.
@@ -270,7 +270,7 @@ class RenderSettings:
     variation: VariationSettings = field(default_factory=VariationSettings)
     ink_color: tuple[int, int, int] = INK_COLORS[DEFAULT_INK]
     # Height of a lowercase "x" on the page.
-    x_height_mm: float = 2.9
+    x_height_mm: float = 2.2
     # Extra space after each character, as a fraction of the x-height.
     letter_spacing: float = 0.04
     # Width of a space character, as a fraction of the x-height.

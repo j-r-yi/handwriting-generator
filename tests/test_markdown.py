@@ -54,6 +54,25 @@ def test_inline_styles() -> None:
     assert _styles("__b__ and _i_") == [("b", {"bold"}), (" and ", set()), ("i", {"italic"})]
 
 
+def test_underline_tags() -> None:
+    assert _styles("- Main point: <u>passion can overpower reason</u>.") == [
+        ("- Main point: ", set()), ("passion can overpower reason", {"underline"}), (".", set()),
+    ]
+    assert _styles("<U>a **b**</U> <ins>c</ins>") == [
+        ("a ", {"underline"}), ("b", {"bold", "underline"}), (" ", set()), ("c", {"underline"}),
+    ]
+    assert _styles("**<u>x</u>**") == [("x", {"bold", "underline"})]
+    assert _styles("<u>a <u>b</u> c</u>") == [("a b c", {"underline"})]
+    block = parse_markdown("- Explanation: <u>passion</u>.")[0]
+    assert block.kind is BlockKind.BULLET and block.text == "Explanation: passion."
+
+
+@pytest.mark.parametrize("text", ["<u>unclosed", "a </u> b", "<u></u>", "x < y > z", "<b>bold?</b>", "<ins>x</u>"])
+def test_unmatched_or_other_tags_stay_literal(text: str) -> None:
+    assert "".join(span.text for span in parse_inline(text)) == text
+    assert all(not span.style.underline for span in parse_inline(text))
+
+
 @pytest.mark.parametrize("text", ["2 * 3 * 4", "snake_case_name", "**unclosed", "~single~", "a ** b", "5*"])
 def test_ordinary_symbols_stay_literal(text: str) -> None:
     assert _styles(text) == [(text, set())]
@@ -166,6 +185,9 @@ def test_bold_and_strike_add_ink() -> None:
 
     assert ink("**abc**") > ink("abc")
     assert ink("~~abc~~") > ink("abc")
+    assert ink("<u>abc</u>") > ink("abc")
+    underlined = _ink_rows(_render("<u>abc</u>").pages[0])
+    assert underlined.max() > _ink_rows(_render("abc").pages[0]).max()  # the line sits below the letters
     assert ink("*abc*") == pytest.approx(ink("abc"), rel=0.25)  # slanted, not heavier
 
 
@@ -190,4 +212,4 @@ def test_heading_space_does_not_stack_with_blank_lines() -> None:
 
 
 def test_style_dataclass_defaults_are_plain() -> None:
-    assert Style() == Style(bold=False, italic=False, strike=False, code=False)
+    assert Style() == Style(bold=False, italic=False, strike=False, code=False, underline=False)

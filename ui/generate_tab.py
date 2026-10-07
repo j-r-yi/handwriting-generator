@@ -12,7 +12,6 @@ from handwriting.models import GlyphSet
 from handwriting.renderer import find_missing_characters, render_text
 from handwriting.sample_store import ProfileStore
 from handwriting.settings import (
-    DEFAULT_DPI,
     DEFAULT_INK,
     DEFAULT_PRESET,
     INK_COLORS,
@@ -29,7 +28,7 @@ from handwriting.settings import (
 )
 from handwriting.utils import parse_hex_color, to_hex_color
 
-from .common import DPI_KEY, current_profile_id, friendly_errors, preview_image
+from .common import current_profile_id, dpi_control, friendly_errors, preview_image
 from .shell import empty_state, page_header, welcome
 
 RESULT_KEY = "generation_result"
@@ -37,9 +36,9 @@ _VIEW_KEY = "result_page"
 _SEED_KEY = "gen_seed"
 _CUSTOM_INK = "Custom"
 _PERSIST = "session"  # keep choices while visiting other pages
-_PAPER_ORDER = [PaperStyle.COLLEGE_RULED, PaperStyle.NARROW_RULED, PaperStyle.WIDE_RULED, PaperStyle.GRAPH,
+_PAPER_ORDER = [PaperStyle.NARROW_RULED, PaperStyle.COLLEGE_RULED, PaperStyle.WIDE_RULED, PaperStyle.GRAPH,
                 PaperStyle.BLANK]
-_PAPER_LABELS = {PaperStyle.COLLEGE_RULED: "College ruled", PaperStyle.NARROW_RULED: "Narrow ruled",
+_PAPER_LABELS = {PaperStyle.NARROW_RULED: "Narrow ruled", PaperStyle.COLLEGE_RULED: "College ruled",
                  PaperStyle.WIDE_RULED: "Wide ruled", PaperStyle.GRAPH: "Graph", PaperStyle.BLANK: "Blank"}
 
 # Variation sliders, grouped as shown: session key -> (attribute on VariationSettings,
@@ -103,6 +102,7 @@ _MARKDOWN_HELP = """
 | `1. item` | numbered item |
 | `- [ ] task` · `- [x] done` | empty / ticked checkbox |
 | `**bold**` · `*italic*` · `~~crossed out~~` | heavier pen · slanted · struck through |
+| `<u>underlined</u>` | a hand-drawn line underneath (works inside lists, headings and quotes) |
 | `> quote` | indented with a line in the margin |
 | `---` | hand-drawn line across the page |
 | `` `code` `` · `[text](link)` | written as plain text (links: text only) |
@@ -181,7 +181,7 @@ def _text_editor(glyphs: GlyphSet) -> tuple[str, bool]:
                         help="Exactly this text is written: nothing is corrected, added or left out.")
     with st.container(horizontal=True, vertical_alignment="center", gap="medium"):
         markdown = st.toggle("Markdown formatting", key="gen_markdown", persist_state=_PERSIST,
-                             help="Headings, lists, checkboxes, bold, italic, strikethrough, quotes and rules. "
+                             help="Headings, lists, checkboxes, bold, italic, strikethrough, underline, quotes and rules. "
                                   "Off: every character is written exactly as typed.")
         with st.popover("Formatting guide", icon=":material/help:", type="tertiary"):
             st.markdown(_MARKDOWN_HELP)
@@ -216,19 +216,21 @@ def _style_controls(markdown: bool) -> tuple[RenderSettings | None, str | None]:
                 ink_color = INK_COLORS[ink_name]
                 swatch = f'<div class="hw-swatch" style="background:{to_hex_color(ink_color)}"></div>'
                 st.html(swatch, width="content")
-        paper_style = st.pills("Paper", _PAPER_ORDER, key="gen_paper", default=PaperStyle.COLLEGE_RULED,
+        paper_style = st.pills("Paper", _PAPER_ORDER, key="gen_paper", default=PageSettings().paper_style,
                                required=True, persist_state=_PERSIST, format_func=_PAPER_LABELS.get,
-                               help="College 9/32\", narrow 1/4\" and wide 11/32\" line spacing. "
+                               help="Narrow 1/4\", college 9/32\" and wide 11/32\" line spacing. "
                                     "Narrow-ruled paper has no red margin line.")
         st.pills("Messiness", list(VARIATION_PRESETS), key="var_preset", on_change=_apply_preset,
                  required=True, persist_state=_PERSIST,
                  help="How tidy the writing looks. Fine-tune it under More options.")
-        x_height = st.slider("Size", 1.8, 6.0, 2.9, 0.1, key="gen_size", persist_state=_PERSIST,
-                             format="%.1f mm", help="Height of a lowercase x on the page.")
+        x_height = st.slider("Size", 1.8, 6.0, RenderSettings().x_height_mm, 0.1, key="gen_size",
+                             persist_state=_PERSIST, format="%.1f mm", help="Height of a lowercase x on the page.")
+        dpi = dpi_control("gen_dpi", "Resolution (DPI)", help="300 prints crisply; 600 stays sharp when zoomed in but files "
+                                                   "are about 4× larger. Also on the Settings page.")
         with st.expander("More options", icon=":material/tune:"):
             page_tab, spacing_tab, fine_tab, other_tab = st.tabs(["Page", "Spacing", "Fine-tune", "Other"])
             with page_tab:
-                page = _page_options(paper_style)
+                page = _page_options(paper_style, dpi)
             with spacing_tab:
                 letter_spacing = st.slider("Letter spacing", -0.2, 0.6, RenderSettings().letter_spacing, 0.01,
                                            key="gen_letter_spacing",
@@ -272,7 +274,7 @@ def _style_controls(markdown: bool) -> tuple[RenderSettings | None, str | None]:
     return settings, None
 
 
-def _page_options(paper_style: PaperStyle) -> PageSettings:
+def _page_options(paper_style: PaperStyle, dpi: int) -> PageSettings:
     page_format = st.segmented_control("Page size", list(PageFormat), key="gen_page_format",
                                        default=PageFormat.LETTER, required=True, persist_state=_PERSIST,
                                        format_func=lambda f: f.value)
@@ -302,7 +304,7 @@ def _page_options(paper_style: PaperStyle) -> PageSettings:
         page_format=page_format,
         paper_style=paper_style,
         margins=margins,
-        dpi=int(st.session_state.get(DPI_KEY, DEFAULT_DPI)),
+        dpi=dpi,
         line_spacing_mm=line_spacing,
         ruled_line_step=line_step,
         show_margin_rule=show_margin_rule,

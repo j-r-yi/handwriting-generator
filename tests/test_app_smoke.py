@@ -14,7 +14,7 @@ from PIL import Image
 from streamlit.testing.v1 import AppTest
 
 from handwriting.sample_store import ProfileStore
-from handwriting.settings import VARIATION_PRESETS, PageFormat
+from handwriting.settings import DEFAULT_DPI, VARIATION_PRESETS, PageFormat, PaperStyle
 
 from tests.helpers import (
     PROJECT_ROOT,
@@ -306,6 +306,40 @@ def test_settings_survive_switching_pages(app: tuple[AppTest, Path], monkeypatch
     _by_label(at.button, "Keep this look").click()
     at.run()
     assert at.text_input(key="gen_seed").value == str(seed)
+
+
+def test_write_page_defaults_and_resolution_picker(app: tuple[AppTest, Path],
+                                                  monkeypatch: pytest.MonkeyPatch) -> None:
+    import ui.generate_tab as generate_tab
+
+    captured = []
+    real_render = generate_tab.render_text
+    monkeypatch.setattr(generate_tab, "render_text",
+                        lambda text, glyphs, settings: captured.append(settings) or real_render(text, glyphs, settings))
+    at, data_dir = app
+    _create_profile(at, "Defaults")
+    store = ProfileStore(data_dir)
+    store.add_samples(store.list_profiles()[0][0].profile_id, make_new_samples("ab", variants=1))
+    at.run()
+    assert at.pills(key="gen_paper").value is PaperStyle.NARROW_RULED
+    assert at.slider(key="gen_size").value == pytest.approx(2.2)
+    assert at.segmented_control(key="gen_dpi").value == DEFAULT_DPI
+
+    at.segmented_control(key="gen_dpi").set_value(600)  # chosen on the Write page...
+    at.run()
+    _open(at, SETTINGS)
+    assert at.segmented_control(key="render_dpi").value == 600  # ...shows on Settings
+    at.segmented_control(key="render_dpi").set_value(200)  # and back again
+    at.run()
+    _open(at, WRITE)
+    assert at.segmented_control(key="gen_dpi").value == 200
+    at.text_area(key="gen_text").set_value("ab ba")
+    _by_label(at.button, "Generate").click()
+    at.run()
+    _assert_no_errors(at)
+    assert captured[-1].page.dpi == 200
+    assert captured[-1].page.paper_style is PaperStyle.NARROW_RULED
+    assert captured[-1].x_height_mm == pytest.approx(2.2)
 
 
 def test_multi_page_result_can_be_paged_through(app: tuple[AppTest, Path]) -> None:

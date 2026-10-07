@@ -645,18 +645,20 @@ class _PageComposer:
 
     def _draw_strikes(self, page: Image.Image, positions: list[tuple[float, CharPlan]], baseline: float,
                       shape: _LineShape = _STRAIGHT) -> None:
-        run: list[tuple[float, CharPlan]] = []
-        for entry in [*positions, None]:
-            if entry is not None and entry[1].style.strike:
-                run.append(entry)
-                continue
-            if run:
-                size = run[0][1].size
-                y = baseline - 0.5 * self._x_height * size
-                start = run[0][0] - 0.1 * self._x_height
-                end = run[-1][0] + run[-1][1].ink_width + 0.1 * self._x_height
-                self._painter.line(page, (start, y + shape.dy(start)), (end, y + shape.dy(end)))
-                run = []
+        """Hand-drawn lines through struck-out runs and under underlined ones."""
+        for marked, height in ((lambda st: st.strike, 0.5), (lambda st: st.underline, -0.32)):
+            run: list[tuple[float, CharPlan]] = []
+            for entry in [*positions, None]:
+                if entry is not None and marked(entry[1].style):
+                    run.append(entry)
+                    continue
+                if run:
+                    size = run[0][1].size
+                    y = baseline - height * self._x_height * size
+                    start = run[0][0] - 0.1 * self._x_height
+                    end = run[-1][0] + run[-1][1].ink_width + 0.1 * self._x_height
+                    self._painter.line(page, (start, y + shape.dy(start)), (end, y + shape.dy(end)))
+                    run = []
 
     # ------------------------------------------------------------- characters
 

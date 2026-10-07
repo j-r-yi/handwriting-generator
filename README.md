@@ -207,11 +207,12 @@ erased. A cleared profile's images and its old `profile.json` are kept in
 2. The app immediately lists any **characters without samples**.
 3. Choose the style:
    - **Ink**: black, dark blue, blue, or any **custom** colour
-   - **Paper**: college ruled, narrow ruled (1/4" lines, no red margin
-     line), wide ruled, graph, or blank
+   - **Paper**: narrow ruled (default; 1/4" lines, no red margin line),
+     college ruled, wide ruled, graph, or blank
    - **Messiness**: *Very Consistent*, *Natural* (default), *Messy* or
      *Rushed notes*
-   - **Size**: height of a lowercase *x* in millimetres
+   - **Size**: height of a lowercase *x* in millimetres (default 2.2 mm)
+   - **Resolution**: output DPI (same setting as on the Settings page)
 4. **More options** has everything else, in four tabs:
    - **Page**: US Letter or A4; **write on** every line / every other line
      (ruled paper) or **line spacing** in mm (blank / graph paper); margins;
@@ -258,7 +259,7 @@ Turn on **Markdown formatting** under the text box to write structured notes.
 The **cell membrane** controls what enters and leaves the cell.
 - Nucleus: holds *genetic* material
   - nested point
-- ~~Golgi makes DNA~~ Golgi packages proteins
+- ~~Golgi makes DNA~~ Golgi packages <u>proteins</u>
 1. Read chapter 4
 - [x] Flashcards
 - [ ] Practice quiz
@@ -275,6 +276,7 @@ The **cell membrane** controls what enters and leaves the cell.
 | `**bold**` | a second, slightly offset pen pass (heavier writing) |
 | `*italic*` | your letters slanted |
 | `~~strike~~` | crossed out with a hand-drawn line |
+| `<u>underline</u>` (or `<ins>`) | a hand-drawn line under the text; works anywhere, e.g. inside a bullet. An unclosed tag is written as typed |
 | `> quote` | indented, with a line in the margin (can contain lists/headings) |
 | `---`, `***`, `___` | a hand-drawn line across the page |
 | `` `code` ``, fenced code blocks | written literally, without formatting |
@@ -300,7 +302,7 @@ as missing.
 
 ### Settings
 
-Choose the output resolution, see where data is stored, clear caches, and read
+Choose the output resolution (also on the Write page), see where data is stored, clear caches, and read
 the privacy notes.
 Resolutions are 150, 200, 300 or 600 DPI. 300 is the default and prints
 crisply. 600 stays sharp when zoomed in, especially with samples scanned at
@@ -484,7 +486,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 python -m pytest
 ```
 
-The suite (184 tests, about 21 seconds) needs no personal handwriting. All
+The suite (192 tests, about 21 seconds) needs no personal handwriting. All
 test images are generated on the fly. It covers:
 
 - Markdown parsing (block types, nesting, inline styles, escapes, code, links,
@@ -583,7 +585,7 @@ test images are generated on the fly. It covers:
 | Some extracted characters look cut off | Untick them in the review, or re-write those characters further from the box borders. |
 | A character renders as a red box | It has no samples. Add some on the **My handwriting** page. |
 | Letters look soft when zoomed in | Set 600 DPI on the **Settings** page. For more detail, re-import the sample sheet from a 600 DPI scan (the preview on screen is always downscaled; downloads are full resolution). |
-| Output looks too neat or uniform | Pick **Messy** or **Rushed notes** under *Messiness*, and raise *Uneven indents*, *Uneven line ends*, *Line slope* or *Word tilt* under **More options → Fine-tune**. Match your real notes: most people write smaller than the default (try **Size** 1.8–2.2 mm on ruled paper), and with your own letter spacing (**Letter spacing** under *Spacing*; raise *Touching letters* under *Fine-tune* if your letters often run together). For messier letter shapes, fill in a new sheet quickly with 5–8 samples per character. |
+| Output looks too neat or uniform | Pick **Messy** or **Rushed notes** under *Messiness*, and raise *Uneven indents*, *Uneven line ends*, *Line slope* or *Word tilt* under **More options → Fine-tune**. Match your real notes: most people write smaller than the default (the default **Size** is 2.2 mm; try 1.8–2.6 mm on ruled paper), and with your own letter spacing (**Letter spacing** under *Spacing*; raise *Touching letters* under *Fine-tune* if your letters often run together). For messier letter shapes, fill in a new sheet quickly with 5–8 samples per character. |
 | "Cannot write to the data directory" | Check folder permissions, or set `HANDWRITING_DATA_DIR` to a writable folder. |
 | Warning that a profile was skipped | Its `profile.json` is damaged. Restore it from a backup or from `data/trash/`. |
 

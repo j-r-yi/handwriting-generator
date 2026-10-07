@@ -12,10 +12,13 @@ from PIL import Image
 
 from handwriting.charset import describe_char
 from handwriting.errors import HandwritingError
+from handwriting.settings import DEFAULT_DPI
 
 PROFILE_KEY = "profile_id"
 _PENDING_PROFILE_KEY = "pending_profile_id"
-DPI_KEY = "render_dpi"
+DPI_KEY = "render_dpi_value"
+DPI_OPTIONS = [150, 200, 300, 600]
+_DPI_LABELS = {150: "150 · Draft", 200: "200", 300: "300 · Print", 600: "600 · Ultra sharp"}
 UPLOAD_TYPES = ["png", "jpg", "jpeg", "bmp", "tif", "tiff", "webp", "gif"]
 SHEET_UPLOAD_TYPES = [*UPLOAD_TYPES, "pdf"]
 THUMBNAIL_HEIGHT = 90
@@ -32,6 +35,21 @@ def friendly_errors(action: str) -> Iterator[None]:
         st.error(f"Something went wrong while {action}: {exc}")
         with st.expander("Technical details"):
             st.exception(exc)
+
+
+def dpi_control(key: str, label: str, help: str | None = None, label_visibility: str = "visible") -> int:
+    """An output resolution picker. All of them share one value (``DPI_KEY``), so each page's picker
+    has its own widget *key*, is filled from the shared value before it is drawn, and copies its
+    choice back when changed."""
+    st.session_state.setdefault(DPI_KEY, DEFAULT_DPI)
+    st.session_state[key] = st.session_state[DPI_KEY]
+
+    def picked() -> None:
+        st.session_state[DPI_KEY] = st.session_state[key]
+
+    st.segmented_control(label, DPI_OPTIONS, key=key, required=True, on_change=picked,
+                         format_func=_DPI_LABELS.get, help=help, label_visibility=label_visibility)
+    return st.session_state[DPI_KEY]
 
 
 def current_profile_id() -> str | None:
