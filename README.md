@@ -1,7 +1,9 @@
 # Handwriting Generator
 
-Turn typed text into realistic pages of **your own handwriting**, built from
-samples of characters you actually wrote.
+Turn typed text into pages written in **your own handwriting**, built from
+samples of characters you wrote yourself. It is meant for personal use: study
+notes, journals, planners, crafts and design mock-ups, or for anyone who finds
+writing long passages by hand slow or painful.
 
 You give the program a few handwritten versions of each character (`a`, `b`,
 `c`, …). It cuts them out, cleans them up and stores them in a *handwriting
@@ -19,6 +21,26 @@ the app:
   the identical image.
 - **private and offline**: everything runs on your computer.
 - **free**: no API keys, no paid services, no cloud.
+
+---
+
+## Responsible use
+
+Use this tool honestly. In particular:
+
+- **Use your own handwriting.** Only create profiles from handwriting that is
+  yours, or that you have the writer's clear permission to use.
+- **Don't deceive anyone.** Don't present generated pages as written by hand
+  where that matters, for example schoolwork, exams or applications that must be
+  handwritten, unless the people involved allow it.
+- **Never forge.** Don't use it to imitate someone else's writing or signature,
+  or to create or alter legal, financial, medical, official or identity
+  documents.
+- **Follow the rules that apply to you**: the law where you live and the
+  policies of your school, employer or any service you submit work to.
+
+You are responsible for how you use what the app creates. The software is
+provided "as is", without warranty (see the [MIT License](LICENSE)).
 
 ---
 
@@ -554,8 +576,8 @@ test images are generated on the fly. It covers:
 
 - **Characters are composed individually.** Connected cursive is not
   reproduced: letters do not join, and there are no ligatures or
-  context-dependent letter shapes. Print-style handwriting gives the most
-  convincing results.
+  context-dependent letter shapes. Print-style handwriting gives the best
+  results.
 - **Baseline and size heuristics are approximate.** Unusual habits (e.g. a
   descending `f`, very large capitals) may sit slightly off, especially for
   manually uploaded samples, which have no shared size reference. The sample
@@ -603,4 +625,5 @@ test images are generated on the fly. It covers:
 
 ## License
 
-Released under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE). Please read
+[Responsible use](#responsible-use) before using the app.

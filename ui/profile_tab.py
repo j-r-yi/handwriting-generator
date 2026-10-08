@@ -153,7 +153,8 @@ def _manual_upload_section(store: ProfileStore, meta: ProfileMetadata) -> None:
     char = _choose_character(meta)
     counter = st.session_state.setdefault(_UPLOAD_COUNTER, 0)
     files = st.file_uploader("Images of this character", type=UPLOAD_TYPES, accept_multiple_files=True,
-                             key=f"manual_files_{counter}")
+                             key=f"manual_files_{counter}",
+                             help="Use your own handwriting, or someone else's only with their permission.")
     if not files or char is None:
         return
 

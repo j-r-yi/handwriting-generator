@@ -128,7 +128,8 @@ def _import_section(store: ProfileStore) -> None:
     profile_id = current_profile_id()
     counter = st.session_state.setdefault(_UPLOAD_COUNTER, 0)
     files = st.file_uploader("Scans or photos of completed pages (images or a multi-page PDF)",
-                             type=SHEET_UPLOAD_TYPES, accept_multiple_files=True, key=f"sheet_files_{counter}")
+                             type=SHEET_UPLOAD_TYPES, accept_multiple_files=True, key=f"sheet_files_{counter}",
+                             help="Only import sheets you filled in yourself, or that the writer agreed you can use.")
     with st.expander("Pages not recognised?", icon=":material/help:"):
         override = _manual_identity()
     if st.button("Extract handwriting", type="primary", icon=":material/auto_fix_high:", disabled=not files):

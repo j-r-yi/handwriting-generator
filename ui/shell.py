@@ -135,6 +135,8 @@ def welcome(store: ProfileStore) -> None:
         st.markdown("A **profile** holds the characters you write by hand. "
                     "Give it a name to get started. You can have several, e.g. one neat and one messy.")
         new_profile_form(store, "welcome_profile")
+        st.caption(":material/verified_user: Use your own handwriting, or someone else's only with their "
+                   "permission. Never use this app to forge signatures or documents.")
     st.space("small")
     steps = [
         (":material/person_add:", "Create a profile", "One per handwriting style."),
