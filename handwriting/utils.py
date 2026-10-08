@@ -198,11 +198,17 @@ def get_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default(size=size)
 
 
+# Folder names Windows reserves for devices (in any letter case, with or without an extension).
+_WINDOWS_RESERVED = frozenset({"con", "prn", "aux", "nul", *(f"com{i}" for i in range(10)),
+                               *(f"lpt{i}" for i in range(10))})
+
+
 def slugify(name: str, max_length: int = 48) -> str:
-    """Make a filesystem-safe, lowercase identifier from a display name."""
+    """Make a filesystem-safe, lowercase identifier from a display name (also safe on Windows)."""
     ascii_name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
     slug = re.sub(r"[^a-z0-9]+", "-", ascii_name.lower()).strip("-")
-    return slug[:max_length].strip("-") or "profile"
+    slug = slug[:max_length].strip("-") or "profile"
+    return f"{slug}-profile" if slug in _WINDOWS_RESERVED else slug
 
 
 def odd(value: float, minimum: int = 3) -> int:

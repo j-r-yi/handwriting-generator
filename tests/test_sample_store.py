@@ -135,6 +135,27 @@ def test_structurally_invalid_metadata_raises(store: ProfileStore, payload) -> N
         store.load_profile("p")
 
 
+@pytest.mark.parametrize("path", ["../evil.png", "glyphs/../../evil.png", "/etc/evil.png", "C:/evil.png",
+                                  "glyphs\\..\\..\\evil.png", "glyphs/lower_a/../../x.png", "glyphs/lower_a/a.txt"])
+def test_sample_paths_outside_the_profile_are_rejected(store: ProfileStore, path: str) -> None:
+    meta = store.create_profile("Paths")
+    store.add_samples(meta.profile_id, make_new_samples("a", variants=1))
+    meta_file = store.profile_dir(meta.profile_id) / "profile.json"
+    payload = json.loads(meta_file.read_text(encoding="utf-8"))
+    payload["characters"]["a"]["samples"][0]["file"] = path
+    meta_file.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(InvalidProfileError, match="unsafe path"):
+        store.load_profile(meta.profile_id)
+
+
+@pytest.mark.parametrize("name", ["Con", "nul", "AUX", "Prn", "com1", "LPT9"])
+def test_profile_folders_avoid_names_reserved_on_windows(store: ProfileStore, name: str) -> None:
+    meta = store.create_profile(name)
+    assert meta.profile_id == f"{name.lower()}-profile"
+    assert meta.name == name  # the name shown in the app is unchanged
+    assert store.load_profile(meta.profile_id).name == name
+
+
 def test_corrupted_sample_file_is_skipped_with_message(store: ProfileStore) -> None:
     meta = store.create_profile("Corrupt")
     added = store.add_samples(meta.profile_id, make_new_samples("c", variants=2))

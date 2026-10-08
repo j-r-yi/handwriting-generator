@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
@@ -12,6 +13,9 @@ from .charset import GLYPH_ALIASES, char_to_id, validate_glyph_char
 from .errors import InvalidProfileError
 
 SCHEMA_VERSION = 1
+# Sample files always live at glyphs/<char-id>/<sample-id>.png inside their profile. Anything else
+# (``..``, absolute paths, Windows drive letters or backslashes) could point outside the profile.
+_SAFE_SAMPLE_PATH = re.compile(r"^glyphs/[a-z0-9_]+/[a-z0-9_]+\.png$")
 
 
 class SampleSource:
@@ -85,7 +89,7 @@ class GlyphSample:
             raise InvalidProfileError(f"Glyph sample {sample.sample_id!r} has an invalid capture resolution.")
         if sample.width <= 0 or sample.height <= 0 or sample.x_height_ref <= 0:
             raise InvalidProfileError(f"Glyph sample {sample.sample_id!r} has invalid dimensions.")
-        if ".." in sample.file.split("/") or sample.file.startswith("/"):
+        if not _SAFE_SAMPLE_PATH.match(sample.file):
             raise InvalidProfileError(f"Glyph sample {sample.sample_id!r} has an unsafe path.")
         return sample
 

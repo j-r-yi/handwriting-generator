@@ -40,7 +40,9 @@ the app:
 
 ## Requirements
 
-- Python **3.12**
+- Python **3.11 or newer** (tested on 3.11, 3.12, 3.13 and 3.14; on macOS,
+  Linux and Windows every dependency installs as a ready-made package, no
+  compiler needed)
 - Direct dependencies, all free and open source (see `requirements.txt`):
   `numpy`, `Pillow`, `opencv-python-headless`, `streamlit` (1.64 or newer),
   `pypdfium2` (renders uploaded PDF scans locally), `pytest`
@@ -53,9 +55,9 @@ the app:
 ### macOS / Linux
 
 ```bash
-git clone <repository-url> handwriting-generator
+git clone https://github.com/j-r-yi/handwriting-generator.git
 cd handwriting-generator
-python3.12 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python -m streamlit run app.py
@@ -64,17 +66,20 @@ python -m streamlit run app.py
 ### Windows (PowerShell)
 
 ```powershell
-git clone <repository-url> handwriting-generator
+git clone https://github.com/j-r-yi/handwriting-generator.git
 cd handwriting-generator
-py -3.12 -m venv .venv
+py -3 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-(With `cmd.exe`, activate with `.venv\Scripts\activate.bat` instead. If
-PowerShell blocks the activation script, run
-`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.)
+`python3 --version` (macOS / Linux) or `py -3 --version` (Windows) should
+show 3.11 or newer; if not, install Python from
+[python.org](https://www.python.org/downloads/). With `cmd.exe`, activate
+with `.venv\Scripts\activate.bat` instead. If PowerShell blocks the
+activation script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+once.
 
 Streamlit prints a local address such as `http://localhost:8501` and usually
 opens it in your browser automatically. To stop the app, press `Ctrl+C` in
@@ -491,7 +496,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 python -m pytest
 ```
 
-The suite (203 tests, about 21 seconds) needs no personal handwriting. All
+The suite (216 tests, about 21 seconds) needs no personal handwriting. All
 test images are generated on the fly. It covers:
 
 - Markdown parsing (block types, nesting, inline styles, escapes, code, links,
